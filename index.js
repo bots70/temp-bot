@@ -1,6 +1,6 @@
 const { 
     Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, 
-    EmbedBuilder, ChannelType, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle 
+    EmbedBuilder, ChannelType, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder 
 } = require('discord.js');
 const http = require('http');
 
@@ -26,41 +26,39 @@ client.once('ready', () => {
     console.log(`Bot is online as ${client.user.tag}`);
 });
 
-// نظام الأمر الكتابي لضمان إرسال اللوحة فوراً بدون مشاكل
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
     if (message.content === '!setup') {
         try {
             const embed = new EmbedBuilder()
-                .setTitle('Temp Control')
-                .setDescription('للتحكم بالروم الضغط على الازرار')
+                .setTitle('Leader Panel')
+                .setDescription('هنا يقدر ليدر القروب يتحكم بقروبه بشكل سريع ومنظم.')
                 .setColor('#2b2d31');
 
-            const row1 = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('temp_transfer').setLabel('نقل الملكية').setStyle(ButtonStyle.Secondary).setEmoji('🫅'),
-                new ButtonBuilder().setCustomId('temp_rename').setLabel('تغيير الاسم').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
-                new ButtonBuilder().setCustomId('temp_limit').setLabel('حد الروم').setStyle(ButtonStyle.Secondary).setEmoji('⏳'),
-                new ButtonBuilder().setCustomId('temp_lock').setLabel('قفل الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔒'),
-                new ButtonBuilder().setCustomId('temp_unlock').setLabel('فتح الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔓')
-            );
+            const selectMenu = new StringSelectMenuBuilder()
+                .setCustomId('leader_menu')
+                .setPlaceholder('Choose a leader action')
+                .addOptions([
+                    { label: 'نقل الملكية', value: 'temp_transfer', emoji: '🫅' },
+                    { label: 'تغيير الاسم', value: 'temp_rename', emoji: '👤' },
+                    { label: 'حد الروم', value: 'temp_limit', emoji: '⏳' },
+                    { label: 'قفل الروم', value: 'temp_lock', emoji: '🔒' },
+                    { label: 'فتح الروم', value: 'temp_unlock', emoji: '🔓' },
+                    { label: 'اخفاء الروم', value: 'temp_hide', emoji: '👁️' },
+                    { label: 'اظهار الروم', value: 'temp_show', emoji: '👁️‍🗨️' },
+                    { label: 'منع عضو', value: 'temp_ban', emoji: '👤' },
+                    { label: 'السماح لعضو', value: 'temp_unban', emoji: '👤' },
+                    { label: 'طرد عضو', value: 'temp_kick', emoji: '🏌️' },
+                    { label: 'ميوت', value: 'temp_mute', emoji: '🎤' },
+                    { label: 'فك ميوت', value: 'temp_unmute', emoji: '🎙️' }
+                ]);
 
-            const row2 = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('temp_hide').setLabel('اخفاء الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️'),
-                new ButtonBuilder().setCustomId('temp_show').setLabel('اظهار الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️‍🗨️'),
-                new ButtonBuilder().setCustomId('temp_ban').setLabel('منع').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
-                new ButtonBuilder().setCustomId('temp_unban').setLabel('السماح').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
-                new ButtonBuilder().setCustomId('temp_kick').setLabel('طرد عضو').setStyle(ButtonStyle.Secondary).setEmoji('🏌️')
-            );
-
-            const row3 = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('temp_mute').setLabel('ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎤'),
-                new ButtonBuilder().setCustomId('temp_unmute').setLabel('فك ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎙️')
-            );
+            const row = new ActionRowBuilder().addComponents(selectMenu);
 
             await message.channel.send({ 
                 embeds: [embed], 
-                components: [row1, row2, row3] 
+                components: [row] 
             });
 
             await message.delete().catch(() => {});
@@ -127,7 +125,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 });
 
 client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isButton() && !interaction.isModalSubmit()) return;
+    if (!interaction.isStringSelectMenu() && !interaction.isModalSubmit()) return;
 
     const member = interaction.member;
     const voiceChannel = member.voice.channel;
@@ -135,8 +133,8 @@ client.on('interactionCreate', async (interaction) => {
     let currentRoomId = voiceChannel ? voiceChannel.id : null;
     let roomData = currentRoomId ? tempRooms.get(currentRoomId) : null;
 
-    if (interaction.isButton()) {
-        const id = interaction.customId;
+    if (interaction.isStringSelectMenu() && interaction.customId === 'leader_menu') {
+        const id = interaction.values[0];
 
         if (!voiceChannel || !roomData || roomData.ownerId !== member.id) {
             return interaction.reply({ content: 'انت مو بروم...', ephemeral: true });
@@ -293,7 +291,7 @@ client.on('interactionCreate', async (interaction) => {
         if (id === 'temp_unmute') {
             await interaction.reply({ content: 'يرجى ارفاق منشن الشخص الذي تريد فك الميوت عنه . . .', ephemeral: true });
             const filter = m => m.author.id === member.id;
-            const collector = interaction.channel.createMessageCollector({ filter, time: 20000, max:.1 });
+            const collector = interaction.channel.createMessageCollector({ filter, time: 20000, max: 1 });
 
             collector.on('collect', async (m) => {
                 await m.delete().catch(() => {});
