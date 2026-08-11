@@ -19,59 +19,54 @@ const client = new Client({
 
 const TARGET_VOICE_CHANNEL = "1536689417136119888";
 const TARGET_CATEGORY = "1535491760627646524";
-const BUTTON_TARGET_CHANNEL = "1536693109662949406";
 
 const tempRooms = new Map();
 
-client.once('ready', async () => {
+client.once('ready', () => {
     console.log(`Bot is online as ${client.user.tag}`);
+});
 
-    try {
-        console.log("جارِ البحث عن القناة المستهدفة للإرسال...");
-        const channel = await client.channels.fetch(BUTTON_TARGET_CHANNEL);
-        
-        if (!channel) {
-            console.log("خطأ: لم يتم العثور على القناة! تأكد أن الآيدي صحيح وأن البوت داخل السيرفر.");
-            return;
+// نظام الأمر الكتابي لضمان إرسال اللوحة فوراً بدون مشاكل
+client.on('messageCreate', async (message) => {
+    if (message.author.bot) return;
+
+    if (message.content === '!setup') {
+        try {
+            const embed = new EmbedBuilder()
+                .setTitle('Temp Control')
+                .setDescription('للتحكم بالروم الضغط على الازرار')
+                .setColor('#2b2d31');
+
+            const row1 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_transfer').setLabel('نقل الملكية').setStyle(ButtonStyle.Secondary).setEmoji('🫅'),
+                new ButtonBuilder().setCustomId('temp_rename').setLabel('تغيير الاسم').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
+                new ButtonBuilder().setCustomId('temp_limit').setLabel('حد الروم').setStyle(ButtonStyle.Secondary).setEmoji('⏳'),
+                new ButtonBuilder().setCustomId('temp_lock').setLabel('قفل الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔒'),
+                new ButtonBuilder().setCustomId('temp_unlock').setLabel('فتح الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔓')
+            );
+
+            const row2 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_hide').setLabel('اخفاء الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️'),
+                new ButtonBuilder().setCustomId('temp_show').setLabel('اظهار الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️‍🗨️'),
+                new ButtonBuilder().setCustomId('temp_ban').setLabel('منع').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
+                new ButtonBuilder().setCustomId('temp_unban').setLabel('السماح').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
+                new ButtonBuilder().setCustomId('temp_kick').setLabel('طرد عضو').setStyle(ButtonStyle.Secondary).setEmoji('🏌️')
+            );
+
+            const row3 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_mute').setLabel('ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎤'),
+                new ButtonBuilder().setCustomId('temp_unmute').setLabel('فك ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎙️')
+            );
+
+            await message.channel.send({ 
+                embeds: [embed], 
+                components: [row1, row2, row3] 
+            });
+
+            await message.delete().catch(() => {});
+        } catch (e) {
+            console.error("خطأ أثناء إرسال اللوحة بالأمر:", e);
         }
-
-        console.log(`تم العثور على القناة: ${channel.name}. جارِ إرسال لوحة الأزرار...`);
-
-        const embed = new EmbedBuilder()
-            .setTitle('Temp Control')
-            .setDescription('للتحكم بالروم الضغط على الازرار')
-            .setColor('#2b2d31');
-
-        // تم تجميع الأزرار في 3 صفوف فقط (الحد الأقصى المسموح به من ديسكورد هو 5 صفوف، وكل صف يحتوي على حتى 5 أزرار)
-        const row1 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_transfer').setLabel('نقل الملكية').setStyle(ButtonStyle.Secondary).setEmoji('🫅'),
-            new ButtonBuilder().setCustomId('temp_rename').setLabel('تغيير الاسم').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
-            new ButtonBuilder().setCustomId('temp_limit').setLabel('حد الروم').setStyle(ButtonStyle.Secondary).setEmoji('⏳'),
-            new ButtonBuilder().setCustomId('temp_lock').setLabel('قفل الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔒'),
-            new ButtonBuilder().setCustomId('temp_unlock').setLabel('فتح الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔓')
-        );
-
-        const row2 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_hide').setLabel('اخفاء الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️'),
-            new ButtonBuilder().setCustomId('temp_show').setLabel('اظهار الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️‍🗨️'),
-            new ButtonBuilder().setCustomId('temp_ban').setLabel('منع').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
-            new ButtonBuilder().setCustomId('temp_unban').setLabel('السماح').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
-            new ButtonBuilder().setCustomId('temp_kick').setLabel('طرد عضو').setStyle(ButtonStyle.Secondary).setEmoji('🏌️')
-        );
-
-        const row3 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_mute').setLabel('ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎤'),
-            new ButtonBuilder().setCustomId('temp_unmute').setLabel('فك ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎙️')
-        );
-
-        await channel.send({ 
-            embeds: [embed], 
-            components: [row1, row2, row3] 
-        });
-        
-        console.log("تم إرسال لوحة الأزرار بنجاح داخل القناة!");
-    } catch (e) {
-        console.error("حدث خطأ أثناء إرسال الرسالة:", e);
     }
 });
 
@@ -298,7 +293,7 @@ client.on('interactionCreate', async (interaction) => {
         if (id === 'temp_unmute') {
             await interaction.reply({ content: 'يرجى ارفاق منشن الشخص الذي تريد فك الميوت عنه . . .', ephemeral: true });
             const filter = m => m.author.id === member.id;
-            const collector = interaction.channel.createMessageCollector({ filter, time: 20000, max: 1 });
+            const collector = interaction.channel.createMessageCollector({ filter, time: 20000, max:.1 });
 
             collector.on('collect', async (m) => {
                 await m.delete().catch(() => {});
