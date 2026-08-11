@@ -17,10 +17,10 @@ const client = new Client({
     ]
 });
 
-const TARGET_VOICE_CHANNEL = "1536673368663916644";
+const TARGET_VOICE_CHANNEL = "1536689417136119888";
 const TARGET_CATEGORY = "1535491760627646524";
 const ALLOWED_CREATOR_ID = "1535375782736560128";
-const BUTTON_TARGET_CHANNEL = "1536673369959698503";
+const BUTTON_TARGET_CHANNEL = "1536689191885348924";
 
 const tempRooms = new Map(); // voiceChannelId -> { ownerId, banned: [], userLimit: 0 }
 
