@@ -42,50 +42,36 @@ client.once('ready', async () => {
             .setDescription('للتحكم بالروم الضغط على الازرار')
             .setColor('#2b2d31');
 
+        // تم تجميع الأزرار في 3 صفوف فقط (الحد الأقصى المسموح به من ديسكورد هو 5 صفوف، وكل صف يحتوي على حتى 5 أزرار)
         const row1 = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId('temp_transfer').setLabel('نقل الملكية').setStyle(ButtonStyle.Secondary).setEmoji('🫅'),
-            new ButtonBuilder().setCustomId('temp_rename').setLabel('تغيير الاسم').setStyle(ButtonStyle.Secondary).setEmoji('👤')
-        );
-
-        const row2 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_limit').setLabel('حد الروم').setStyle(ButtonStyle.Secondary).setEmoji('⏳')
-        );
-
-        const row3 = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('temp_rename').setLabel('تغيير الاسم').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
+            new ButtonBuilder().setCustomId('temp_limit').setLabel('حد الروم').setStyle(ButtonStyle.Secondary).setEmoji('⏳'),
             new ButtonBuilder().setCustomId('temp_lock').setLabel('قفل الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔒'),
             new ButtonBuilder().setCustomId('temp_unlock').setLabel('فتح الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔓')
         );
 
-        const row4 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_hide').setLabel('اخفاء الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️')
-        );
-
-        const row5 = new ActionRowBuilder().addComponents(
+        const row2 = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('temp_hide').setLabel('اخفاء الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️'),
             new ButtonBuilder().setCustomId('temp_show').setLabel('اظهار الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️‍🗨️'),
-            new ButtonBuilder().setCustomId('temp_ban').setLabel('منع').setStyle(ButtonStyle.Secondary).setEmoji('👤')
+            new ButtonBuilder().setCustomId('temp_ban').setLabel('منع').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
+            new ButtonBuilder().setCustomId('temp_unban').setLabel('السماح').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
+            new ButtonBuilder().setCustomId('temp_kick').setLabel('طرد عضو').setStyle(ButtonStyle.Secondary).setEmoji('🏌️')
         );
 
-        const row6 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_unban').setLabel('السماح').setStyle(ButtonStyle.Secondary).setEmoji('👤')
-        );
-
-        const row7 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_kick').setLabel('طرد عضو').setStyle(ButtonStyle.Secondary).setEmoji('🏌️'),
-            new ButtonBuilder().setCustomId('temp_mute').setLabel('ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎤')
-        );
-
-        const row8 = new ActionRowBuilder().addComponents(
+        const row3 = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('temp_mute').setLabel('ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎤'),
             new ButtonBuilder().setCustomId('temp_unmute').setLabel('فك ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎙️')
         );
 
         await channel.send({ 
             embeds: [embed], 
-            components: [row1, row2, row3, row4, row5, row6, row7, row8] 
+            components: [row1, row2, row3] 
         });
         
         console.log("تم إرسال لوحة الأزرار بنجاح داخل القناة!");
     } catch (e) {
-        console.error("حدث خطأ تقريبي أثناء إرسال الرسالة:", e);
+        console.error("حدث خطأ أثناء إرسال الرسالة:", e);
     }
 });
 
