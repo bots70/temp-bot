@@ -20,8 +20,13 @@ client.on('messageCreate', async (message) => {
     if (message.content === '-setup' || message.content === '!setup') {
         const embed = new EmbedBuilder()
             .setTitle('Temp Control')
-            .setDescription('للتحكم بالروم الضغط على الازار')
+            .setDescription('للتحكم بالروم الضغط على الازار أو انشئ روم خاص بك')
             .setColor(0x2f3136);
+
+        // زر خاص بإنشاء روم صوتي تلقائياً (Create Channel)
+        const createRow = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('create_temp_channel').setLabel('إنشاء روم خاص').setEmoji('➕').setStyle(ButtonStyle.Success)
+        );
 
         // الصف الأول: تغير الاسم، نقل الملكية، حد الروم
         const row1 = new ActionRowBuilder().addComponents(
@@ -53,24 +58,52 @@ client.on('messageCreate', async (message) => {
 
         await message.channel.send({
             embeds: [embed],
-            components: [row1, row2, row3, row4]
+            components: [createRow, row1, row2, row3, row4]
         });
     }
 });
 
-// نظام التفاعل مع الأزرار للتحكم بالرومات الصوتية
+// نظام التفاعل مع الأزرار (إنشاء الرومات والتحكم فيها)
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton()) return;
 
     const member = interaction.member;
-    const voiceChannel = member.voice.channel;
-
-    // التحقق مما إذا كان العضو في روم صوتي عند الضغط على أي زر تحكم
-    if (!voiceChannel) {
-        return interaction.reply({ content: 'يجب أن تكون داخل روم صوتي لكي تستخدم هذه الأزرار!', ephemeral: true });
-    }
 
     try {
+        // زر إنشاء روم صوتي خاص تلقائياً (Create Channel)
+        if (interaction.customId === 'create_temp_channel') {
+            const guild = interaction.guild;
+            
+            // إنشاء الروم الصوتي باسم العضو
+            const channel = await guild.channels.create({
+                name: `room-${member.user.username}`,
+                type: ChannelType.GuildVoice,
+                parent: interaction.channel.parentId, // ينشئ الروم في نفس القسم (Category)
+                permissionOverwrites: [
+                    {
+                        id: guild.id,
+                        allow: [PermissionFlagsBits.Connect],
+                    },
+                    {
+                        id: member.id,
+                        allow: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.MuteMembers, PermissionFlagsBits.DeafenMembers],
+                    },
+                ],
+            });
+
+            // نقل العضو تلقائياً إلى الروم الجديد إذا كان داخل روم صوتي
+            if (member.voice.channel) {
+                await member.voice.setChannel(channel);
+            }
+
+            return interaction.reply({ content: `✅ تم إنشاء الروم الخاص بك بنجاح: <#${channel.id}>`, ephemeral: true });
+        }
+
+        const voiceChannel = member.voice.channel;
+        if (!voiceChannel) {
+            return interaction.reply({ content: 'يجب أن تكون داخل روم صوتي لكي تستخدم أزرار التحكم!', ephemeral: true });
+        }
+
         if (interaction.customId === 'temp_lock') {
             await voiceChannel.permissionOverwrites.edit(interaction.guild.roles.everyone, { Connect: false });
             await interaction.reply({ content: '🔒 تم قفل الروم بنجاح.', ephemeral: true });
@@ -96,7 +129,6 @@ client.on('interactionCreate', async (interaction) => {
             await interaction.reply({ content: '🎙️ تم فك الميوت عن الروم.', ephemeral: true });
         }
         else {
-            // باقي الأزرار (تغيير الاسم، الحد، الطرد، النقل.. إلخ)
             await interaction.reply({ content: 'تم استلام طلبك وجاري معالجته.', ephemeral: true });
         }
     } catch (error)  {
@@ -105,5 +137,5 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-// ضع توكن بوتك هنا أو استخدم متغيرات البيئة (process.env.TOKEN)
+// تأكد من وضع توكن بوتك الصحيح هنا (وتأكد أنه لا يحتوي على أخطاء لكي تختفي مشكلة TokenInvalid في Render)
 client.login('YOUR_BOT_TOKEN');
