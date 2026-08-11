@@ -17,11 +17,11 @@ const client = new Client({
     ]
 });
 
-const TARGET_VOICE_CHANNEL = "1535492631893909604";
+const TARGET_VOICE_CHANNEL = "1536673368663916644";
 const TARGET_CATEGORY = "1535491760627646524";
 const ALLOWED_CREATOR_ID = "1535375782736560128";
+const BUTTON_TARGET_CHANNEL = "1536673369959698503";
 
-// قاعدة بيانات مؤقتة لتخزين معلومات الرومات المؤقتة (الملك, الحد, الممنوعين, الخ)
 const tempRooms = new Map(); // voiceChannelId -> { ownerId, banned: [], userLimit: 0 }
 
 client.once('ready', () => {
@@ -33,64 +33,63 @@ client.on('messageCreate', async (message) => {
 
     const hasAllowedRole = message.member.roles.cache.has(ALLOWED_CREATOR_ID) || message.author.id === ALLOWED_CREATOR_ID;
 
-    // إرسال لوحة التحكم والأزرار عند كتابة sinty وبواسطة الرول المخصص فقط
-    if (message.content.trim().toLowerCase() === 'sinty' && hasAllowedRole) {
-        await message.delete().catch(() => {});
+    if (message.channel.id === BUTTON_TARGET_CHANNEL) {
+        if (message.content.trim().toLowerCase() === 'goin' && hasAllowedRole) {
+            await message.delete().catch(() => {});
 
-        const embed = new EmbedBuilder()
-            .setTitle('Temp Control')
-            .setDescription('للتحكم بالروم الضغط على الازرار')
-            .setColor('#2b2d31');
+            const embed = new EmbedBuilder()
+                .setTitle('Temp Control')
+                .setDescription('للتحكم بالروم الضغط على الازرار')
+                .setColor('#2b2d31');
 
-        const row1 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_transfer').setLabel('نقل الملكية').setStyle(ButtonStyle.Secondary).setEmoji('🫅'),
-            new ButtonBuilder().setCustomId('temp_rename').setLabel('تغيير الاسم').setStyle(ButtonStyle.Secondary).setEmoji('👤')
-        );
+            const row1 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_transfer').setLabel('نقل الملكية').setStyle(ButtonStyle.Secondary).setEmoji('🫅'),
+                new ButtonBuilder().setCustomId('temp_rename').setLabel('تغيير الاسم').setStyle(ButtonStyle.Secondary).setEmoji('👤')
+            );
 
-        const row2 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_limit').setLabel('حد الروم').setStyle(ButtonStyle.Secondary).setEmoji('⏳')
-        );
+            const row2 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_limit').setLabel('حد الروم').setStyle(ButtonStyle.Secondary).setEmoji('⏳')
+            );
 
-        const row3 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_lock').setLabel('قفل الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔒'),
-            new ButtonBuilder().setCustomId('temp_unlock').setLabel('فتح الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔓')
-        );
+            const row3 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_lock').setLabel('قفل الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔒'),
+                new ButtonBuilder().setCustomId('temp_unlock').setLabel('فتح الروم').setStyle(ButtonStyle.Secondary).setEmoji('🔓')
+            );
 
-        const row4 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_hide').setLabel('اخفاء الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️')
-        );
+            const row4 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_hide').setLabel('اخفاء الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️')
+            );
 
-        const row5 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_show').setLabel('اظهار الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️‍🗨️'),
-            new ButtonBuilder().setCustomId('temp_ban').setLabel('منع').setStyle(ButtonStyle.Secondary).setEmoji('👤')
-        );
+            const row5 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_show').setLabel('اظهار الروم').setStyle(ButtonStyle.Secondary).setEmoji('👁️‍🗨️'),
+                new ButtonBuilder().setCustomId('temp_ban').setLabel('منع').setStyle(ButtonStyle.Secondary).setEmoji('👤')
+            );
 
-        const row6 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_unban').setLabel('السماح').setStyle(ButtonStyle.Secondary).setEmoji('👤')
-        );
+            const row6 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_unban').setLabel('السماح').setStyle(ButtonStyle.Secondary).setEmoji('👤')
+            );
 
-        const row7 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_kick').setLabel('طرد عضو').setStyle(ButtonStyle.Secondary).setEmoji('🏌️'),
-            new ButtonBuilder().setCustomId('temp_mute').setLabel('ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎤')
-        );
+            const row7 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_kick').setLabel('طرد عضو').setStyle(ButtonStyle.Secondary).setEmoji('🏌️'),
+                new ButtonBuilder().setCustomId('temp_mute').setLabel('ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎤')
+            );
 
-        const row8 = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('temp_unmute').setLabel('فك ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎙️')
-        );
+            const row8 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('temp_unmute').setLabel('فك ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎙️')
+            );
 
-        return message.channel.send({ 
-            embeds: [embed], 
-            components: [row1, row2, row3, row4, row5, row6, row7, row8] 
-        });
+            return message.channel.send({ 
+                embeds: [embed], 
+                components: [row1, row2, row3, row4, row5, row6, row7, row8] 
+            });
+        }
     }
 });
 
-// نظام إنشاء الروم الصوتي المؤقت ودخوله
 client.on('voiceStateUpdate', async (oldState, newState) => {
     const member = newState.member;
     if (!member) return;
 
-    // إذا دخل الروم المحدد للإنشاء
     if (newState.channelId === TARGET_VOICE_CHANNEL) {
         try {
             const guild = newState.guild;
@@ -118,7 +117,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         }
     }
 
-    // التحقق من الحد الأقصى للأعضاء (userLimit) عند دخول أي روم مسجل
     if (newState.channelId && tempRooms.has(newState.channelId)) {
         const roomData = tempRooms.get(newState.channelId);
         const channel = newState.channel;
@@ -135,7 +133,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         }
     }
 
-    // تنظيف الروم إذا فاض
     if (oldState.channelId && tempRooms.has(oldState.channelId)) {
         const oldChannel = oldState.channel;
         if (oldChannel && oldChannel.members.size === 0) {
@@ -145,21 +142,18 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     }
 });
 
-// التفاعل مع الأزرار والـ Modals
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton() && !interaction.isModalSubmit()) return;
 
     const member = interaction.member;
     const voiceChannel = member.voice.channel;
 
-    // التحقق هل المستخدم داخل روم صوتي وهل هو روم مؤقت يملكه (أو يتحكم به)
     let currentRoomId = voiceChannel ? voiceChannel.id : null;
     let roomData = currentRoomId ? tempRooms.get(currentRoomId) : null;
 
     if (interaction.isButton()) {
         const id = interaction.customId;
 
-        // الأزرار التي تتطلب أن يكون صاحب الروم بداخله
         if (!voiceChannel || !roomData || roomData.ownerId !== member.id) {
             return interaction.reply({ content: 'انت مو بروم...', ephemeral: true });
         }
