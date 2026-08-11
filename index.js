@@ -19,10 +19,9 @@ const client = new Client({
 
 const TARGET_VOICE_CHANNEL = "1536689417136119888";
 const TARGET_CATEGORY = "1535491760627646524";
-const ALLOWED_CREATOR_ID = "1535375782736560128";
 const BUTTON_TARGET_CHANNEL = "1536689191885348924";
 
-const tempRooms = new Map(); // voiceChannelId -> { ownerId, banned: [], userLimit: 0 }
+const tempRooms = new Map();
 
 client.once('ready', () => {
     console.log(`Temped Bot logged in as ${client.user.tag}`);
@@ -31,10 +30,8 @@ client.once('ready', () => {
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
 
-    const hasAllowedRole = message.member.roles.cache.has(ALLOWED_CREATOR_ID) || message.author.id === ALLOWED_CREATOR_ID;
-
     if (message.channel.id === BUTTON_TARGET_CHANNEL) {
-        if (message.content.trim().toLowerCase() === 'goin' && hasAllowedRole) {
+        if (message.content.trim().toLowerCase() === 'goin') {
             await message.delete().catch(() => {});
 
             const embed = new EmbedBuilder()
@@ -98,7 +95,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
             const vChan = await guild.channels.create({
                 name: channelName,
                 type: ChannelType.GuildVoice,
-                parent: TARGET_CATEGORY,
+                parent: TARGET_CATEGORY || null,
                 permissionOverwrites: [
                     { id: guild.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Connect, PermissionFlagsBits.Speak] },
                     { id: member.id, allow: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.MuteMembers, PermissionFlagsBits.DeafenMembers, PermissionFlagsBits.MoveMembers] }
@@ -113,7 +110,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
             await member.voice.setChannel(vChan).catch(() => {});
         } catch (e) {
-            console.error(e);
+            console.error("Error creating voice channel:", e);
         }
     }
 
@@ -170,7 +167,7 @@ client.on('interactionCreate', async (interaction) => {
                 .setPlaceholder('اسم الروم')
                 .setRequired(true);
 
-            modal.addActionRow(new ActionRowBuilder().addComponents(input));
+            modal.addComponents(new ActionRowBuilder().addComponents(input));
             return interaction.showModal(modal);
         }
 
@@ -186,7 +183,7 @@ client.on('interactionCreate', async (interaction) => {
                 .setPlaceholder('7 أو 8 أو 9')
                 .setRequired(true);
 
-            modal.addActionRow(new ActionRowBuilder().addComponents(input));
+            modal.addComponents(new ActionRowBuilder().addComponents(input));
             return interaction.showModal(modal);
         }
 
@@ -309,7 +306,7 @@ client.on('interactionCreate', async (interaction) => {
         if (id === 'temp_unmute') {
             await interaction.reply({ content: 'يرجى ارفاق منشن الشخص الذي تريد فك الميوت عنه . . .', ephemeral: true });
             const filter = m => m.author.id === member.id;
-            const collector = interaction.channel.createMessageCollector({ filter, time: 20000, max: 1 });
+            const collector = interaction.channel.createMessageCalls ? interaction.channel.createMessageCollector({ filter, time: 20000, max: 1 }) : interaction.channel.createMessageCollector({ filter, time: 20000, max: 1 });
 
             collector.on('collect', async (m) => {
                 await m.delete().catch(() => {});
