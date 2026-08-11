@@ -19,22 +19,20 @@ const client = new Client({
 
 const TARGET_VOICE_CHANNEL = "1536689417136119888";
 const TARGET_CATEGORY = "1535491760627646524";
+const CONTROL_CHANNEL_ID = "1536693109662949406";
 
 const tempRooms = new Map();
 
-client.once('ready', () => {
+client.once('ready', async () => {
     console.log(`Bot is online as ${client.user.tag}`);
-});
 
-client.on('messageCreate', async (message) => {
-    if (message.author.bot) return;
-
-    // الاستجابة لأمر -setup أو !setup لإرسال الأزرار
-    if (message.content === '-setup' || message.content === '!setup') {
-        try {
+    // إرسال اللوحة والأزرار تلقائياً فور تشغيل البوت في القناة المحددة
+    try {
+        const channel = await client.channels.fetch(CONTROL_CHANNEL_ID);
+        if (channel) {
             const embed = new EmbedBuilder()
-                .setTitle('Leader Panel')
-                .setDescription('هنا يقدر ليدر القروب يتحكم بقروبه بشكل سريع ومنظم.')
+                .setTitle('Temp Control')
+                .setDescription('للتحكم بالروم الضغط على الازرار')
                 .setColor('#2b2d31');
 
             const row1 = new ActionRowBuilder().addComponents(
@@ -58,15 +56,14 @@ client.on('messageCreate', async (message) => {
                 new ButtonBuilder().setCustomId('temp_unmute').setLabel('فك ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎙️')
             );
 
-            await message.channel.send({ 
+            await channel.send({ 
                 embeds: [embed], 
                 components: [row1, row2, row3] 
             });
-
-            await message.delete().catch(() => {});
-        } catch (e) {
-            console.error("خطأ أثناء إرسال الأزرار:", e);
+            console.log("تم إرسال لوحة التحكم تلقائياً بنجاح!");
         }
+    } catch (error) {
+        console.error("خطأ أثناء إرسال اللوحة تلقائياً:", error);
     }
 });
 
