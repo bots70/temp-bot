@@ -23,16 +23,16 @@ const BUTTON_TARGET_CHANNEL = "1536693109662949406";
 
 const tempRooms = new Map();
 
-client.once('ready', () => {
+client.once('ready', async () => {
     console.log(`Temped Bot logged in as ${client.user.tag}`);
-});
 
-client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.guild) return;
-
-    if (message.channel.id === BUTTON_TARGET_CHANNEL) {
-        if (message.content.trim().toLowerCase() === 'goin') {
-            await message.delete().catch(() => {});
+    try {
+        const channel = await client.channels.fetch(BUTTON_TARGET_CHANNEL);
+        if (channel && channel.isTextBased()) {
+            const messages = await channel.messages.fetch({ limit: 10 });
+            for (const msg of messages.values()) {
+                await msg.delete().catch(() => {});
+            }
 
             const embed = new EmbedBuilder()
                 .setTitle('Temp Control')
@@ -75,11 +75,13 @@ client.on('messageCreate', async (message) => {
                 new ButtonBuilder().setCustomId('temp_unmute').setLabel('فك ميوت').setStyle(ButtonStyle.Secondary).setEmoji('🎙️')
             );
 
-            return message.channel.send({ 
+            await channel.send({ 
                 embeds: [embed], 
                 components: [row1, row2, row3, row4, row5, row6, row7, row8] 
             });
         }
+    } catch (e) {
+        console.error("Error sending control panel on ready:", e);
     }
 });
 
