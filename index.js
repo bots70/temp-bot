@@ -306,7 +306,7 @@ client.on('interactionCreate', async (interaction) => {
         if (id === 'temp_unmute') {
             await interaction.reply({ content: 'يرجى ارفاق منشن الشخص الذي تريد فك الميوت عنه . . .', ephemeral: true });
             const filter = m => m.author.id === member.id;
-            const collector = interaction.channel.createMessageCalls ? interaction.channel.createMessageCollector({ filter, time: 20000, max: 1 }) : interaction.channel.createMessageCollector({ filter, time: 20000, max: 1 });
+            const collector = interaction.channel.createMessageCollector({ filter, time: 20000, max: 1 });
 
             collector.on('collect', async (m) => {
                 await m.delete().catch(() => {});
