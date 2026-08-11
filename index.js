@@ -16,26 +16,22 @@ client.on('ready', () => {
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
-    // أمر إرسال لوحة التحكم (يدعم -setup و !setup)
     if (message.content === '-setup' || message.content === '!setup') {
         const embed = new EmbedBuilder()
             .setTitle('Temp Control')
             .setDescription('للتحكم بالروم الضغط على الازار أو انشئ روم خاص بك')
             .setColor(0x2f3136);
 
-        // زر خاص بإنشاء روم صوتي تلقائياً (Create Channel)
         const createRow = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId('create_temp_channel').setLabel('إنشاء روم خاص').setEmoji('➕').setStyle(ButtonStyle.Success)
         );
 
-        // الصف الأول: تغير الاسم، نقل الملكية، حد الروم
         const row1 = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId('temp_rename').setLabel('تغير الاسم').setEmoji('👤').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('temp_transfer').setLabel('نقل الملكية').setEmoji('✍️').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('temp_limit').setLabel('حد الروم').setEmoji('🎧').setStyle(ButtonStyle.Secondary)
         );
 
-        // الصف الثاني: قفل الروم، فتح الروم، اخفاء الروم، اظهار الروم
         const row2 = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId('temp_lock').setLabel('قفل الروم').setEmoji('🔒').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('temp_unlock').setLabel('فتح الروم').setEmoji('🔓').setStyle(ButtonStyle.Secondary),
@@ -43,14 +39,12 @@ client.on('messageCreate', async (message) => {
             new ButtonBuilder().setCustomId('temp_unhide').setLabel('اظهار الروم').setEmoji('👁️').setStyle(ButtonStyle.Secondary)
         );
 
-        // الصف الثالث: منع، السماح، طرد عضو
         const row3 = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId('temp_ban').setLabel('منع').setEmoji('👤').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('temp_allow').setLabel('السماح').setEmoji('👤').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('temp_kick').setLabel('طرد عضو').setEmoji('🚪').setStyle(ButtonStyle.Secondary)
         );
 
-        // الصف الرابع: ميوت، فك ميوت
         const row4 = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId('temp_mute').setLabel('ميوت').setEmoji('🎤').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('temp_unmute').setLabel('فك ميوت').setEmoji('🎙️').setStyle(ButtonStyle.Secondary)
@@ -63,22 +57,19 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// نظام التفاعل مع الأزرار (إنشاء الرومات والتحكم فيها)
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton()) return;
 
     const member = interaction.member;
 
     try {
-        // زر إنشاء روم صوتي خاص تلقائياً (Create Channel)
         if (interaction.customId === 'create_temp_channel') {
             const guild = interaction.guild;
             
-            // إنشاء الروم الصوتي باسم العضو
             const channel = await guild.channels.create({
                 name: `room-${member.user.username}`,
                 type: ChannelType.GuildVoice,
-                parent: interaction.channel.parentId, // ينشئ الروم في نفس القسم (Category)
+                parent: interaction.channel.parentId,
                 permissionOverwrites: [
                     {
                         id: guild.id,
@@ -91,7 +82,6 @@ client.on('interactionCreate', async (interaction) => {
                 ],
             });
 
-            // نقل العضو تلقائياً إلى الروم الجديد إذا كان داخل روم صوتي
             if (member.voice.channel) {
                 await member.voice.setChannel(channel);
             }
@@ -137,5 +127,4 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-// تأكد من وضع توكن بوتك الصحيح هنا (وتأكد أنه لا يحتوي على أخطاء لكي تختفي مشكلة TokenInvalid في Render)
-client.login('YOUR_BOT_TOKEN');
+client.login(process.env.TOKEN);
